@@ -1,0 +1,1 @@
+{"name":"Iterator","className":"DataModel","filePaths":["default.project.json"],"children":[{"name":"ReplicatedStorage","className":"ReplicatedStorage","children":[{"name":"Iterator","className":"ModuleScript","filePaths":["src\\init.lua"]}]}]}

@@ -1,0 +1,12 @@
+{
+  "name": "Iterator",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Iterator": {
+        "$path": "src"
+      }
+    }
+  }
+}
