@@ -10,7 +10,7 @@
 	github: https://github.com/GalladeR475/Iter
 ]]
 
-type IPair<Key = any, Value = any> = {
+type IPair<Key = number, Value = any> = {
 	Key: Key;
 	Value: Value;
 };
@@ -97,13 +97,14 @@ type IterImpl = {
 	) -> ({Key}, {Value});
 };
 
-type Iter<Item = any> = BaseIter<Item> & IterImpl;
+export type Iter<Item = any> = BaseIter<Item> & IterImpl;
 
 type IterClass = {
 	new: <Item>(Next: () -> (Item?)) -> Iter<Item>;
 	Iota: (Start: number?, Step: number?) -> (Iter<number>);
 	Keys: <Key, Value>(Iterable: { [Key]: Value }) -> (Iter<Key>);
 	Values: <Key, Value>(Iterable: { [Key]: Value }) -> (Iter<Value>);
+    FromTable: <Item>(Table: { Item }) -> (Iter<Item>);
 };
 
 local Iterator = ({});
@@ -405,6 +406,22 @@ function Iterator.Values<Key, Value>(Iterable: { [Key]: Value }): (Iter<Value>)
 		Key, Value = next(Iterable, Key);
 		return (Value);
 	end);
+end;
+
+--[[
+    Creates a new `Iter` object from a table.
+
+    ```lua
+    local List = { "Name", 13, true }
+    Iterator.FromTable(List);
+    ```
+]]
+function Iterator.FromTable<Item>(Table: { Item }): (Iter<Item>)
+    local Index: number?, Value: Item;
+    return Iterator.new(function()
+        Index, Value = next(Table, Index);
+        return (Value);
+    end);
 end;
 
 return (Iterator :: IterClass);
