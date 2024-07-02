@@ -82,7 +82,7 @@ type IterImpl = {
 		self: IterImpl
 	) -> ({Item});
 	
-	--// Consumer
+	--// Unzip
 	Unzip: <Key, Value>(
 		self: BaseIter<IPair<Key, Value>> & IterImpl
 	) -> ({Key}, {Value});
@@ -168,7 +168,7 @@ end;
     ```lua
     -- Key = Iter<Item>
     -- Value = AnotherIter<Item>
-    Iter:Zip(AnotherIter) --// Iter<IPair<Key, Value>>
+    local Zipped = Iter:Zip(AnotherIter) --// Iter<IPair<Key, Value>>
     ```
 ]]
 function Iterator.prototype.Zip<Key, Value>(self: Iter<Key>, rhs: Iter<Value>): (Iter<IPair<Key, Value>>)
@@ -311,6 +311,24 @@ function Iterator.prototype.Collect<Item>(self: Iter<Item>): ({Item})
         Collected[#Collected + 1] = Item;
     end;
     return (Collected);
+end;
+
+--[[
+    Returns a list of `Keys` and a list of `Values` from an `IPair`
+    ```lua
+    -- Key = Iter<Item>
+    -- Value = AnotherIter<Item>
+    local Zipped = Iter:Zip(AnotherIter) --// Iter<IPair<Key, Value>>
+	local Keys, Values = Zipped:Unzip(); --// {Key}, {Value}
+    ```
+]]
+function Iterator.prototype.Unzip<Key, Value>(self: Iter<IPair<Key, Value>>): ({Key}, {Value})
+    local First, Second = ({}), ({});
+    for IPair: IPair<Key, Value> in self.Next do
+        First[#First + 1] = IPair.First;
+        Second[#Second + 1] = IPair.Second;
+    end;
+    return (First), (Second);
 end;
 
 --[[
