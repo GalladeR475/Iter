@@ -2,7 +2,7 @@
 --!optimize 2
 
 --[[
-	Iter
+	Iter v1.0.1
         lazy and fast iterators for Luau/Roblox
         Inspired by rustlang's `Iter`
     
