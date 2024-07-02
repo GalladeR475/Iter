@@ -325,8 +325,8 @@ end;
 function Iterator.prototype.Unzip<Key, Value>(self: Iter<IPair<Key, Value>>): ({Key}, {Value})
     local First, Second = ({}), ({});
     for IPair: IPair<Key, Value> in self.Next do
-        First[#First + 1] = IPair.First;
-        Second[#Second + 1] = IPair.Second;
+        First[#First + 1] = IPair.Key;
+        Second[#Second + 1] = IPair.Value;
     end;
     return (First), (Second);
 end;
