@@ -6,6 +6,7 @@ Iter is a roblox module used to create lazy iterators. (inspired by rustlang ite
 
 ## Download
 Head on over to [Releases](https://github.com/GalladeR475/Iter/releases) and get the latest version of the module.
+Alternatively, you could get it from the [Roblox Creator Store](https://create.roblox.com/store/asset/18302560336/Iter)
 
 ## Build from Scratch
 To build the place from scratch, use:
