@@ -1,5 +1,6 @@
 # Project place file
 /Iterator.rbxlx
+/src/src.lua
 
 # Roblox Studio lock files
 /*.rbxlx.lock

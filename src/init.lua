@@ -1,240 +1,263 @@
---[[
-    Iterator
-        lazy iterators for Luau/Roblox
-        Inspired by rustlang Iterators
-    
-    author: cgl4de (@GalladeR475)
+--!native
+--!optimize 2
 
-    Documentation can be found in a comment above the desired function.
-]]
+type IPair<Key = any, Value = any> = {
+	Key: Key;
+	Value: Value;
+};
+
+type BaseIter<Item = any> = {
+	Next: () -> (Item?)
+};
+
+type IterImpl = {
+	--// Map
+	Map: <Item, NewItem>(
+		self: IterImpl,
+		Mapper: (Item) -> (NewItem)
+	) -> (BaseIter<NewItem> & IterImpl);
+	
+	--// Filter
+	Filter: <Item>(
+		self: IterImpl,
+		Filter: (Item) -> (boolean?)
+	) -> (IterImpl);
+	
+	--// Take
+	Take: <Item>(
+		self: IterImpl,
+		Count: number?
+	) -> (IterImpl);
+	
+	--// Zip
+	Zip: <Key, Value>(
+		self: BaseIter<Key> & IterImpl,
+		rhs: BaseIter<Value> & IterImpl
+	) -> (BaseIter<IPair<Key, Value>> & IterImpl);
+	
+	--// Enumerate
+	Enumerate: <Item>(
+		self: IterImpl
+	) -> (BaseIter<IPair<number, Item>> & IterImpl);
+	
+	--// Iterator Consumers
+	
+	--// Any
+	Any: <Item>(
+		self: IterImpl,
+		Callback: (Item) -> (boolean?)
+	) -> (boolean?);
+	
+	--// All
+	All: <Item>(
+		self: IterImpl,
+		Callback: (Item) -> (boolean?)
+	) -> (boolean?);
+	
+	--// Find
+	Find: <Item>(
+		self: IterImpl,
+		Filter: (Item) -> (boolean?)
+	) -> ({Item});
+	
+	--// ForEach
+	ForEach: <Item>(
+		self: IterImpl,
+		Callback: (Item) -> ()
+	) -> ();
+	
+	--// Count
+	Count: <Item>(
+		self: IterImpl
+	) -> (number);
+	
+	--// Position
+	Position: <Item>(
+		self: IterImpl,
+		Callback: (Item) -> (boolean?)
+	) -> ({number?});
+	
+	--// Collect
+	Collect: <Item>(
+		self: IterImpl
+	) -> ({Item});
+	
+	--// Consumer
+	Unzip: <Key, Value>(
+		self: BaseIter<IPair<Key, Value>> & IterImpl
+	) -> ({Key}, {Value});
+};
+
+type Iter<Item = any> = BaseIter<Item> & IterImpl;
+
+type IterClass = {
+	new: <Item>(Next: () -> (Item?)) -> Iter<Item>;
+	Iota: (Start: number?, Step: number?) -> (Iter<number>);
+	Keys: <Key, Value>(Iterable: { [Key]: Value }) -> (Iter<Key>);
+	Values: <Key, Value>(Iterable: { [Key]: Value }) -> (Iter<Value>);
+};
 
 local Iterator = ({});
 Iterator.__index = Iterator;
 
 Iterator.prototype = ({});
-function Iterator.prototype:__index(key: any): (any)
-	return (rawget(self, key)) or (rawget(Iterator, key));
+Iterator.prototype.__index = Iterator.prototype;
+
+function Iterator.prototype:__len(): ()
+    return (self:Count());
 end;
 
-export type IPair<First, Second> = { First: First, Second: Second };
-
-type BaseIter<Item> = {
-    next: () -> (Item?);
-};
-
-type IterImpl = {
-    Map: <Item, NewItem>(
-        self: BaseIter<Item> & IterImpl,
-        Map: (Item) -> (NewItem)
-    ) -> (BaseIter<NewItem> & IterImpl);
-
-    Filter: <Item>(
-        self: BaseIter<Item> & IterImpl,
-        Filter: (Item) -> (boolean)
-    ) -> (BaseIter<Item> & IterImpl);
-    
-    Take: <Item>(
-        self: BaseIter<Item> & IterImpl,
-        Count: number
-    ) -> (BaseIter<Item> & IterImpl);
-
-    Zip: <First, Second>(
-        self: BaseIter<First> & IterImpl,
-        rhs: BaseIter<Second> & IterImpl
-    ) -> (BaseIter<IPair<First, Second>> & IterImpl);
-    
-    Enumerate: <Item>(
-        self: BaseIter<Item> & IterImpl
-    ) -> (BaseIter<IPair<number, Item>> & IterImpl);
-
-    --// Iterator Consumers
-    Any: <Item>(
-        self: BaseIter<Item> & IterImpl,
-        Callback: (Item) -> (boolean?)
-    ) -> (boolean?);
-
-    All: <Item>(
-        self: BaseIter<Item> & IterImpl,
-        Callback: (Item) -> (boolean?)
-    ) -> (boolean?);
-    
-    Count: <Item>(
-        self: BaseIter<Item> & IterImpl
-    ) -> (number);
-
-    ForEach: <Item>(
-        self: BaseIter<Item> & IterImpl,
-        Callback: (Item) -> ()
-    ) -> ();
-    
-    Find: <Item>(
-        self: BaseIter<Item> & IterImpl,
-        Callback: (Item) -> (boolean?)
-    ) -> ({Item?});
-    
-    Position: <Item>(
-        self: BaseIter<Item> & IterImpl,
-        Callback: (Item) -> (boolean?)
-    ) -> ({number?});
-    
-    Collect: <Item>(
-        self: BaseIter<Item> & IterImpl
-    ) -> ({Item});
-
-    Fold: <Item, Accumulator>(
-        self: BaseIter<Item> & IterImpl,
-        Callback: (Accumulator, Item) -> (Accumulator),
-        InitialAccumulator: Accumulator
-    ) -> (Accumulator);
-    
-    Reduce: <Item>(
-        self: BaseIter<Item> & IterImpl,
-        Reducer: (Item, Item) -> (Item)
-    ) -> (Item?);
-    
-    Unzip: <First, Second>(
-        self: BaseIter<IPair<First, Second>> & IterImpl
-    ) -> ({First}, {Second});
-};
-
-export type Iter<Item> = BaseIter<Item> & IterImpl;
-
---// Class for handling creation of iterators
-type IteratorClass = {
-    new: <Item>(Next: () -> (Item?)) -> (Iter<Item>);
-    Keys: <Key, Value>(keyValue: { [Key]: Value }) -> (Iter<Key>);
-    Values: <Key, Value>(keyValue: { [Key]: Value }) -> (Iter<Value>);
-    Iota: (Start: number?, Step: number?) -> Iter<number>;
-};
-
---// Iterator Class
---// Responsible for the creation of new iterators
 --[[
-    Creates a new Iterator Object
+    Returns a new `Iter` object consisting of mapped `Item`s by a mapping function.
+    ```lua
+    local Details = {
+        [1] = "Name";
+        [2] = "Age";
+    };
+    local Iter = Iterator.Keys(Details); --// Iter<number>
+    local Mapper = function(Item)
+        return (tostring(Item))
+    end;
+
+    local Mapped = Iter:Map(Mapper) --// Iter<string>
+    ```
 ]]
-function Iterator.new<Item>(Next: () -> (Item?)): (Iter<Item>)
-    local self = setmetatable({
-        next = Next;
-    }, Iterator.prototype);
-    return (self :: Iter<Item>);
+function Iterator.prototype.Map<Item, NewItem>(self: Iter<Item>, Mapper: (Item) -> (NewItem)): (Iter<NewItem>)
+	return (Iterator.new(function(): ()
+		local Item = self.Next();
+		return (Mapper(Item));
+	end));
 end;
 
 --[[
-    Creates a new iterator of only keys of a key-value pair (iterables)
-]]
-function Iterator.Keys<Key, Value>(keyValue: { [Key]: Value }): (Iter<Key>)
-    return (Iterator.new(function(): ()
-        local Key: Key?;
-        Key = next(keyValue, Key);
-        return (Key);
-    end));
-end;
-
---[[
-    Creates a new iterator of only values of a key-value pair (iterables)
-]]
-function Iterator.Values<Key, Value>(keyValue: { [Key]: Value }): (Iter<Value>)
-    return (Iterator.new(function(): ()
-        local Key: Key?, Value: Value?;
-        Key, Value = next(keyValue, Key);
-        return (Value);
-    end));
-end;
-
---[[
-    Creates a new iterator of only successive values in a specified range (iterables)
-]]
-function Iterator.Iota(Start: number, Step: number): (Iter<number>)
-    local Counter = Start or 0;
-    return (Iterator.new(function(): ()
-        Counter += Step or 1;
-        return (Counter);
-    end));
-end;
-
---// Iterator Definitions
---// Iteration Methods
-
---[[
-    Returns a new `Iterator` consisting of transformed `Item` by a mapping function.
-]]
-function Iterator.prototype.Map<Item, NewItem>(self: Iter<Item>, Map: (Item) -> (NewItem?)): (Iter<NewItem>)
-    return (Iterator.new(function(): ()
-        local Item = self.next();
-        return (Map(Item));
-    end));
-end;
-
---[[
-    Returns an `Iterator` which consists of Items whose `Callback` function returns true.
+    Returns a new `Iter` object consisting of `Item`s whose `Callback` function returned `true`
+    ```lua
+    local IsEven = function(x) return (x % 2 == 0) end;
+    local Filtered = Iter:Filter(IsEven); --// Returns only even numbers
+    ```
 ]]
 function Iterator.prototype.Filter<Item>(self: Iter<Item>, Filter: (Item) -> (boolean?)): (Iter<Item>)
-    return (Iterator.new(function(): ()
-        for Item in self.next do
-            if (Filter(Item)) then
-                return (Item);
-            end;
-        end;
-        return;
-    end));
+	return (Iterator.new(function(): ()
+		for Item in self.Next do
+			if (Filter(Item)) then
+				return (Item);
+			end;
+		end;
+		return;
+	end));
 end;
 
 --[[
-    Returns an `Iterator` consisting of `n` number of `Item`s from the start.
+    Returns a new `Iter` object consisting of `n` `Item`s from the start.
+    ```lua
+    Iter:Take(5); --// 5 items from the start
+    ```
 ]]
 function Iterator.prototype.Take<Item>(self: Iter<Item>, Count: number): (Iter<Item>)
-    return (Iterator.new(function(): ()
-        if (not Count) then
-            return;
-        end;
-        Count -= 1;
-        return (self.next());
-    end));
+	return (Iterator.new(function(): ()
+		if (not Count) then
+			return;
+		end;
+		Count -= 1;
+		return (self.Next());
+	end));
 end;
 
 --[[
-    Returns an `Iterator` of `IPair`s with the index as the first, and the `Item` as the second parameter.
+    Returns a new `Iter` object consisting of `IPair`s (Key-Value pair).
+    ```lua
+    -- Key = Iter<Item>
+    -- Value = AnotherIter<Item>
+    Iter:Zip(AnotherIter) --// Iter<IPair<Key, Value>>
+    ```
+]]
+function Iterator.prototype.Zip<Key, Value>(self: Iter<Key>, rhs: Iter<Value>): (Iter<IPair<Key, Value>>)
+	return (Iterator.new(function(): ()
+		local Key: Key?, Value: Value?;
+		Key = self.Next();
+		Value = rhs.Next();
+		if (not Key) or (not Value) then
+			return;
+		end;
+		return ({
+			Key = Key;
+			Value = Value;
+		});
+	end));
+end;
+
+--[[
+    Returns an `Iter` object of `IPair`s with the index as the key, and the `Item` as the value.
+    ```lua
+    local Iter = Iterator.Keys({
+        Name = "GalladeR475";
+        Age = 17;
+    });
+    local Enumerated = Iter:Enumerate(); --// { Key = 1, Value = "Name" }, { Key = 2, Value = "Age" }
+    ```
 ]]
 function Iterator.prototype.Enumerate<Item>(self: Iter<Item>): (Iter<IPair<number, Item>>)
-    return (Iterator.Iota(0, 1):Zip(self));
+	return (Iterator.Iota():Zip(self));
 end;
 
 --[[
-    Returns an `Iterator` of `IPair`s from two iterators with two distinct types.
+    Calls a function `Callback` for each `Item` in the Iterator.
+    ```lua
+    local Iter = Iterator.Keys({
+        Name = "GalladeR475";
+        Age = 17;
+    });
+    Iter:ForEach(print); --// prints "Name" and "Age"
+    ```
 ]]
-function Iterator.prototype.Zip<First, Second>(self: Iter<First>, rhs: Iter<Second>): (Iter<IPair<First, Second>>)
-    return (Iterator.new(function(): ()
-        local First: First?, Second: Second?;
-        First = self.next();
-        Second = rhs.next();
-        if (not First) or (not Second) then
-            return;
-        end;
-        return ({
-            First = First;
-            Second = Second;
-        });
-    end));
+function Iterator.prototype.ForEach<Item>(self: BaseIter<Item> & IterImpl, Callback: (Item) -> ())
+	for Item in self.Next do
+		Callback(Item);
+	end;
 end;
 
---// Iterator Consumer Methods
---// Consumer methods are methods which no longer return an `Iterator`, terminating the chain.
-
 --[[
-    Calls a function `Iteration` for each `Item` in the `Iterator`.
+    Returns true if the `Callback` function of ANY `Item` in the Iterator returns `true`.
+    ```lua
+    local Iter = Iterator.Iota(); --// Iter<number>
+    Iter:Any(IsEven); --// returns `true`
+    ```
 ]]
-function Iterator.prototype.ForEach<Item>(self: Iter<Item>, Iteration: (Item) -> ()): ()
-    for Item in (self.next) do
-        Iteration(Item);
-    end;
+function Iterator.prototype.Any<Item>(self: BaseIter<Item> & IterImpl, Callback: (Item) -> ()): (boolean?)
+	for Item in self.Next do
+		if (Callback(Item)) then
+			return (true);
+		end;
+	end;
+	return;
 end;
 
 --[[
-    Returns a list of `Item`s in the `Iterator` whose `Callback` function returned `true`.
+    Returns true if the `Callback` function of ALL `Item`s in the Iterator returns `true`, else returns `false`.
+    ```lua
+    local Iter = Iterator.Iota(); --// Iter<number>
+    Iter:All(IsEven); --// returns `false` as all number values are not even
+    ```
+]]
+function Iterator.prototype.All<Item>(self: BaseIter<Item> & IterImpl, Callback: (Item) -> ()): (boolean?)
+	for Item in self.Next do
+		if (not Callback(Item)) then
+			return (false);
+		end;
+	end;
+	return;
+end;
+
+--[[
+    Returns a list of `Item`s in the `Iter` object whose `Callback` function returned `true`, else `false`.
+    ```lua
+    local Iter = Iterator.Iota(); --// Iter<number>
+    local ExtractedItems = Iter:Find(IsEven) --// returns a list of even numbers
+    ```
 ]]
 function Iterator.prototype.Find<Item>(self: Iter<Item>, Callback: (Item) -> ()): ({Item?})
     local FoundItems = ({});
-    for Item in self.next do
+    for Item in self.Next do
         if (Callback(Item)) then
             FoundItems[#FoundItems + 1] = Item;
         end;
@@ -243,98 +266,118 @@ function Iterator.prototype.Find<Item>(self: Iter<Item>, Callback: (Item) -> ())
 end;
 
 --[[
-    Returns `true` if the `Callback` function of `ANY` item of the `Iterator` returns `true`, else `false`.
-]]
-function Iterator.prototype.Any<Item>(self: Iter<Item>, Callback: (Item) -> (boolean?)): (boolean?)
-    for Item in (self.next) do
-        if (Callback(Item)) then
-            return (true);
-        end;
-    end;
-    return;
-end;
-
---[[
-    Returns `true` if the `Callback` function of `ALL` items of the `Iterator` returns `true`, else `false`.
-]]
-function Iterator.prototype.All<Item>(self: Iter<Item>, Check: (Item) -> (boolean?)): (boolean?)
-    for Item in (self.next) do
-        if (not Check(Item)) then
-            return (false);
-        end;
-    end;
-    return;
-end;
-
---[[
-    Returns the length of the `Iterator`.
+    Returns the count (length) of the `Iter` object.
 ]]
 function Iterator.prototype.Count<Item>(self: Iter<Item>): (number)
     local Count = 0;
-    for Item in self.next do
+    for Item in self.Next do
         Count += 1;
     end;
     return (Count);
 end;
 
 --[[
-    Returns a list of indexes of the `Iterator` whose `Callback` function returns `true`.
+    Returns a list of indices of `Item`s in the `Iter` object whose `Callback` function returned `true`, else `false`.
+    ```lua
+    local Iter = Iterator.Iota(); --// Iter<number>
+    local ExtractedItems = Iter:Position(IsEven) --// returns a list of positions of even numbers
+    ```
 ]]
 function Iterator.prototype.Position<Item>(self: Iter<Item>, Callback: (Item) -> (boolean?)): ({number?})
     local FoundPositions = ({});
-    local CurrentPosition = 1;
-    for Item in self.next do
+    local CurrentPosition = 0;
+    for Item in self.Next do
+        CurrentPosition += 1;
         if (Callback(Item)) then
             FoundPositions[#FoundPositions + 1] = CurrentPosition;
         end;
-        CurrentPosition += 1;
     end;
     return (FoundPositions);
 end;
 
 --[[
-    Returns a list of all `Item`s of the `Iterator`.
+    Returns a list of all `Item`s in the `Iter` object.
+    ```lua
+    local Iter = Iterator.Keys({
+        Name = "GalladeR475";
+        Age = 17;
+    });
+    local Collected = Iter:Collect(); --// { "Name", "Age" }
+    ```
 ]]
 function Iterator.prototype.Collect<Item>(self: Iter<Item>): ({Item})
     local Collected = ({});
-    for Item in self.next do
+    for Item in self.Next do
         Collected[#Collected + 1] = Item;
     end;
     return (Collected);
 end;
 
 --[[
-    Applies a callback function to each `Item` of an `Iterator` per iteration, accumulating into a new value.
+    Creates a new `Iter` object.
+
+    ```lua
+    local Iter = Iterator.new(NextFunction);
+    ```
 ]]
-function Iterator.prototype.Fold<Item, Accumulator>(self: Iter<Item>, Callback: (Accumulator, Item) -> (Accumulator), InitialAccumulator: Accumulator): (Accumulator)
-    local Accumulator = InitialAccumulator;
-    for Item in self.next do
-        Accumulator = Callback(Accumulator, Item);
-    end;
-    return (Accumulator);
+function Iterator.new<Item>(Next: () -> (Item?)): (Iter<Item> & any)
+	local self = setmetatable({
+		Next = Next;
+	}, Iterator.prototype);
+	return (self :: Iter<Item> & any);
 end;
 
 --[[
-    Executes a callback function on each `Item` of the `Iterator` and passes the return value from the calculation to the preceding `Item`.
+    Creates a new `Iter` object with sequential number values.
+
+    ```lua
+    Iterator.Iota(Start: number? or 0, Step: number? or 1);
+    ```
 ]]
-function Iterator.prototype.Reduce<Item>(self: Iter<Item>, Reducer: (Item, Item) -> (Item)): (Item?)
-    local InitialAccumulator = self.next();
-    if (not InitialAccumulator) then
-        return;
-    end;
-    return (self:Fold(Reducer, InitialAccumulator));
+function Iterator.Iota(Start: number?, Step: number?): (Iter<number>) 
+	local Count = Start or 0;
+	return (Iterator.new(function(): ()
+		Count += Step or 1;
+		return (Count);
+	end));
 end;
 
 --[[
-    Unzips the `Iterator` into two collections
+    Creates a new `Iter` object from the `Keys` of the given iterable.
+
+    ```lua
+    local Details = {
+        ["Name"] = "GalladeR475";
+        ["Age"] = 17;
+    }
+    Iterator.Keys(Details); --// Iter<string>
+    ```
 ]]
-function Iterator.prototype.Unzip<First, Second>(self: Iter<IPair<First, Second>>): ({First}, {Second})
-    local First, Second = ({}), ({});
-    for IPair: IPair<First, Second> in self.next do
-        First[#First + 1] = IPair.First;
-        Second[#Second + 1] = IPair.Second;
-    end;
-    return (First), (Second);
+function Iterator.Keys<Key, Value>(Iterable: { [Key]: Value }): (Iter<Key>)
+	local Key: Key?, Value: Value;
+	return Iterator.new(function(): ()
+		Key, _ = next(Iterable, Key);
+		return (Key);
+	end);
 end;
 
-return (Iterator :: IteratorClass);
+--[[
+    Creates a new `Iter` object from the `Values` of the given iterable.
+
+    ```lua
+    local Details = {
+        ["Name"] = "GalladeR475";
+        ["Age"] = 17;
+    }
+    Iterator.Keys(Details); --// Iter<string|number>
+    ```
+]]
+function Iterator.Values<Key, Value>(Iterable: { [Key]: Value }): (Iter<Value>)
+	local Key: Key?, Value: Value;
+	return Iterator.new(function(): ()
+		Key, Value = next(Iterable, Key);
+		return (Value);
+	end);
+end;
+
+return (Iterator :: IterClass);
