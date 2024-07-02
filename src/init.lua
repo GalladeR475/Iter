@@ -1,6 +1,15 @@
 --!native
 --!optimize 2
 
+--[[
+	Iter
+        lazy and fast iterators for Luau/Roblox
+        Inspired by rustlang's `Iter`
+    
+    author: cgl4de (@GalladeR475)
+	github: https://github.com/GalladeR475/Iter
+]]
+
 type IPair<Key = any, Value = any> = {
 	Key: Key;
 	Value: Value;
