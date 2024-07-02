@@ -1,4 +1,4 @@
-# Iterator
+# Iter
 Iter is a roblox module used to create lazy iterators. (inspired by rustlang iterators)
 
 ## API
