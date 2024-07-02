@@ -387,7 +387,7 @@ end;
         ["Name"] = "GalladeR475";
         ["Age"] = 17;
     }
-    Iterator.Keys(Details); --// Iter<string|number>
+    Iterator.Values(Details); --// Iter<string|number>
     ```
 ]]
 function Iterator.Values<Key, Value>(Iterable: { [Key]: Value }): (Iter<Value>)
