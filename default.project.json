@@ -1,0 +1,14 @@
+{
+  "name": "Iter",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Iter": {
+        "$path": "Source"
+      },
+      "Examples": {
+        "$path": "Examples"
+      }
+    }
+  }
+}
